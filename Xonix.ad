@@ -1,0 +1,12 @@
+Xonix*Background:       Sky Blue
+Xonix*Foreground:       gray75
+Xonix*Man:              black
+Xonix*TopLeftShade:     white
+Xonix*BottomRightShade: gray25
+Xonix*Text:             blue
+Xonix*UseGIF:           no
+!Xonix*UseGIF:           on
+!Xonix*GifDir:           /xonix
+Xonix*Font:             10x20
+Xonix*Ball:             red
+

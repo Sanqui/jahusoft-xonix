@@ -1,0 +1,60 @@
+                          //    //   //////  //    //  //// //    //
+	                  //  //   //    // ///   //   //   //  //
+                          ////    //    // ////  //   //    ////
+                          //     //    // // // //   //     //
+                        ////    //    // //  ////   //    ////
+                      //  //   //    // //   ///   //   //  //
+                    //    //   //////  //    //  //// //    //
+				         v1.1
+					  by
+                       //  ///  // // //  //  ///////////////////////
+                      // // // // // //  // //
+                  // // ///// ///// //  //  //   ///   ///// /////
+                  ///  // // // //  ////    // // //  //      //
+                                          //  // //  ////    //
+                //////////////////////////    ///   //      //
+
+                            THIS PROGRAM IS FREEWARE
+INTRODUCTION:
+	I did this simple game 5 years ago on HP-UX. It was my first program
+	on UNIX and one of first programs in C. The code is very very ugly and
+	unclean....For now it works only in 256 posixcolor mode.
+	I think it is quite nice and funny game...so I realized to release it.
+	the goal is to get 75% of area using a small circle drawing a line...
+	if you want better game get KOULES!
+REQUIREMENTS:
+	Linux.X windows,256 color mode..
+	ps:now truecolor modes are supported.
+INSTALL:
+	make
+	make install
+	if you have directory with some nice gifs add to
+	/usr/X11R6/lib/X11/app-defaults:
+	Xonix*UseGIF:           yes
+	Xonix*GifDir:           <some directory>
+	<not tested in truecolor mode>
+USAGE:
+	xonix [ussual X parameters]
+BUGS:
+	may crash sometimes.....
+
+AUTHOR:
+	Jan Hubicka  ---      hubicka@limax.paru.cas.cz
+	Dukelskych bojovniku 1944
+	Tabor 39001
+	Czech Republic
+COPYING:
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or (at
+	your option) any later version.
+
+	This program is distributed in the hope that it will be useful, but
+	WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+

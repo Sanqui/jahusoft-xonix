@@ -20,6 +20,7 @@
  *    V1.1 29.6.1995 revised and ported for linux			*
  *                   sorry for stupid code...It was my forst work on    *
  *								  unix  *
+ *    V1.2 10.12.2021 revised to work on modern Linux systems --Sanqui  *
  *                                                                      *
  ************************************************************************/
 /*
@@ -38,6 +39,7 @@ struct main
 p[5];
 #define GIFDIR GifDIR.addr
 #include <stdio.h>
+#include <stdlib.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xresource.h>
@@ -229,7 +231,7 @@ resizni ()
 			      ,ZPixmap, 0, data2, xv,
 			      yv, 8, xv);
       if (obrazek == NULL)
-	exit ();
+	exit (1);
       data3 = data2;
       {
 	register char *data, *data1;	/*bresenham */
@@ -293,11 +295,15 @@ koule ()
   r1 = color.red;
   g1 = color.green;
   b1 = color.blue;
-  if ((data1 = (char *) malloc (Xkrok * Ykrok * DefaultDepth (dp, screen) / 8)) == NULL)
+  if ((data1 = (char *) malloc (Xkrok * Ykrok * 4)) == NULL)
     perror ("Memory Error"), exit (2);
   koule1 = XCreateImage (dp, DefaultVisual (dp, screen), DefaultDepth (dp, screen)
 			 ,ZPixmap, 0, data1, Xkrok,
-   Ykrok, DefaultDepth (dp, screen), Xkrok * DefaultDepth (dp, screen) / 8);
+   Ykrok, 32, Xkrok * 4);
+   if (koule1 == NULL) {
+    	perror ("Failed to allocate koule1");
+	 	exit (2);
+   }
   if (Ykrok > Xkrok)
     m = Xkrok;
   else
@@ -876,8 +882,11 @@ dalsi ()
       stav = UKAZUJEM;
       XPutImage (dp, wi, gc, obrazek, 0, 0, 0, 0, Xkrok * VELX, Ykrok * VELY);
       napis ("Press Any Key");
-      pokus (FREE);
-      pokus (NORMAL);
+      /*pokus (FREE);
+      pokus (NORMAL);*/
+	  XSelectInput (dp, wi, KeyPress);
+	  XNextEvent (dp, &myEvent);
+	  XSelectInput (dp, wi, ExposureMask | KeyPress | KeyRelease | ConfigureRequest);
     }
   for (x1 = 0; x1 < VELX; x1++)
     for (y1 = 0; y1 < VELY; y1++)
@@ -889,9 +898,14 @@ dalsi ()
     nactidalsi (),
       nahraj (file);
   napis ("Press any key");
-  pokus (FREE);
+  /*pokus (FREE);*/
   napis ("Press any key");
-  pokus (NORMAL);
+  /* Due to the change made in order to call dalsi() from pokus() we can't call dalsi() in a
+     nested manner, so simply wait for event here */
+  XSelectInput (dp, wi, KeyPress);
+  XNextEvent (dp, &myEvent);
+  XSelectInput (dp, wi, ExposureMask | KeyPress | KeyRelease | ConfigureRequest);
+  /*pokus (NORMAL);*/
   score += limit / pocvybarv + zabrano - limit;
   live++;
   limit += VELX / 3;
@@ -938,7 +952,7 @@ pohyb ()
   int x1, y1, vykresli = 0, i;
   struct itimerval rttimer, oldrttimer;
   signal (SIGALRM, pohyb);
-  if (bezi == 0)
+  if (bezi == 0 && stav == HRAJEME)
     {
       bezi = 1;
     restart:;
@@ -1070,8 +1084,11 @@ pohyb ()
 	    }
 	  XFlush (dp);
 	}
+	/* The dalsi() call was moved to the pokus() function, see below. */
+	/*
       if (vyhral)
 	dalsi (), vyhral = 0;
+	*/
       XFlush (dp);
       bezi = 0;
       XFlush (dp);
@@ -1092,8 +1109,13 @@ pokus (mode)
   for (;;)
     {
       if (mode == FREE)
-	if (!XEventsQueued (dp, QueuedAfterFlush))
-	  return (True);
+		if (!XEventsQueued (dp, QueuedAfterFlush))
+		  return (True);
+
+      /* The dalsi() call was moved here because XNextEvent() wouldn't work in the pohyb() timer function */
+      if (vyhral)
+		dalsi (), vyhral = 0;
+
       XNextEvent (dp, &myEvent);
       switch (myEvent.type)
 	{
@@ -1110,20 +1132,21 @@ pokus (mode)
 	      return (True);
 	    }
 	  /* klavesa=1; */
-	  switch (XLookupKeysym((XKeyEvent *)&myEvent,((XKeyEvent *)&myEvent)->state))
+	  /*switch (XLookupKeysym((XKeyEvent *)&myEvent,((XKeyEvent *)&myEvent)->state))*/
+	  switch (myEvent.xkey.keycode)
 	    {
-	    case XK_Up:
+	    case 111: /*XK_Up:*/
 	      smer = 1, klavreag = myEvent.xkey.keycode;
 	      break;
-	    case XK_Right:
+	    case 114: /*XK_Right:*/
 	      smer = 2;
 	      klavreag = myEvent.xkey.keycode;
 	      break;
-	    case XK_Down:
+	    case 116: /*XK_Down:*/
 	      smer = 3;
 	      klavreag = myEvent.xkey.keycode;
 	      break;
-	    case XK_Left:
+	    case 113: /*XK_Left:*/
 	      smer = 4;
 	      klavreag = myEvent.xkey.keycode;
 	      break;
@@ -1271,7 +1294,7 @@ main (argc, argv)
      char **argv;
 {
   XWMHints *XS;
-  XSizeHints SH;
+  XSizeHints *SH;
   Font f;
   XrmDatabase Database = NULL;
   static XrmOptionDescRec opTable[] =
@@ -1293,7 +1316,7 @@ main (argc, argv)
   char *type;
 
   XrmInitialize ();
-  if ((Database = XrmGetFileDatabase ("/usr/lib/X11/app-defaults/Xonix")) == NULL)
+  if ((Database = XrmGetFileDatabase ("Xonix.ad")) == NULL)
     {
       printf ("       X O N I X\n");
       printf ("JAHUSOFT shareware game\n"
@@ -1407,13 +1430,13 @@ main (argc, argv)
       if ((dp = XOpenDisplay (0)) == 0)
 	{
 	  printf ("could not open display");
-	  exit ();
+	  exit (1);
 	}
     }
   else if ((dp = XOpenDisplay (display.addr)) == 0)
     {
       printf ("could not open display");
-      exit ();
+      exit (1);
     }
   if ((f = XLoadFont (dp, font1.addr)) == 0)
     {
@@ -1429,15 +1452,16 @@ main (argc, argv)
   back = ColorNameToPixel (dp, backcolor.addr);
   wi = XCreateSimpleWindow (dp, RootWindow (dp, screen), 50, 50, (int) VELX * Xkrok,
 			    (int) VELY * Ykrok + SIRKA, 3, border, back);
-  XS = XGetWMHints (dp, wi);
-  SH.flags |= PResizeInc | PMinSize;
-  SH.width_inc = VELX;
-  SH.height_inc = VELY;
-  SH.min_width = VELX * 5;
-  SH.min_height = VELY * 5 + SIRKA;
+  /*XS = XGetWMHints (dp, wi);*/
+  SH = XAllocSizeHints();
+  SH->flags |= PResizeInc | PMinSize;
+  SH->width_inc = VELX;
+  SH->height_inc = VELY;
+  SH->min_width = VELX * 5;
+  SH->min_height = VELY * 5 + SIRKA;
   XSetStandardProperties (dp, wi, "JAHUSOFT XONIX", "Xonix",
-			  XCreateBitmapFromData (dp, wi, xonix_bits, xonix_width, xonix_height), argv, argc, XS);
-  XSetNormalHints (dp, wi, &SH);
+			  XCreateBitmapFromData (dp, wi, xonix_bits, xonix_width, xonix_height), argv, argc, SH);
+  XSetNormalHints (dp, wi, SH);
   XMapWindow (dp, wi);
   XFlush (dp);
   gc = XCreateGC (dp, wi, 0, NULL);

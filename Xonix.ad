@@ -8,6 +8,6 @@ Xonix*UseGIF:           no
 !Xonix*UseGIF:           on
 !Xonix*GifDir:           /xonix
 #Xonix*Font:             fixed
-Xonix*Font:             -*-courier-*-r-*-*-20-*-*-*-*-*-*-*
+Xonix*Font:             -*-liberation mono-*-r-*-*-*-*-*-*-*-*-*-*
 Xonix*Ball:             red
 
